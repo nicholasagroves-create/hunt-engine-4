@@ -17,7 +17,9 @@
     "enabled": true
   },
   "tutorial": {
-    "enabled": false
+    "enabled": false,
+    "steps": [],
+    "allowReplay": true
   },
   "transmissionSettings": {
     "maxActive": 2
@@ -33,6 +35,15 @@
     "inventory": "content/inventory.json",
     "transmissions": "content/transmissions.json",
     "achievements": "content/achievements.json",
-    "skins": "content/skins.json"
+    "skins": "content/skins.json",
+    "openingScreens": "content/openingScreens.json"
+  },
+  "openingSequence": {
+    "screenIds": [],
+    "allowNarrativeReplay": true
+  },
+  "launch": {
+    "initialQrPolicy": "require-rescan",
+    "resumePolicy": "last-meaningful-screen"
   }
 }

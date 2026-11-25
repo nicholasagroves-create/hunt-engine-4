@@ -45,7 +45,63 @@
       "type": "object"
     },
     "tutorial": {
-      "type": "object"
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "id"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "puzzle",
+                  "instruction"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "allowReplay": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "steps"
+            ],
+            "properties": {
+              "steps": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "transmissionSettings": {
       "type": "object"
@@ -66,12 +122,91 @@
         "inventory",
         "transmissions",
         "achievements",
-        "skins"
+        "skins",
+        "openingScreens"
       ],
       "additionalProperties": {
         "type": "string",
         "minLength": 1
       }
+    },
+    "openingSequence": {
+      "type": "object",
+      "required": [
+        "screenIds"
+      ],
+      "properties": {
+        "screenIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "allowNarrativeReplay": {
+          "type": "boolean"
+        },
+        "studioDefaultId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "launch": {
+      "type": "object",
+      "properties": {
+        "initialDestination": {
+          "type": "string",
+          "minLength": 1
+        },
+        "initialQrPolicy": {
+          "enum": [
+            "require-rescan",
+            "auto-launch",
+            "ignore"
+          ]
+        },
+        "rescanPrompt": {
+          "type": "object"
+        },
+        "resumePolicy": {
+          "enum": [
+            "last-meaningful-screen",
+            "default"
+          ]
+        },
+        "archive": {
+          "type": "object",
+          "properties": {
+            "initialCharacter": {
+              "enum": [
+                "latest-tile",
+                "default"
+              ]
+            },
+            "afterPuzzle": {
+              "enum": [
+                "tile-recipient",
+                "default"
+              ]
+            },
+            "manualOpen": {
+              "enum": [
+                "last-viewed",
+                "default"
+              ]
+            },
+            "defaultCharacterId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
