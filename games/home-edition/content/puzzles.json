@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "home-scanner-test",
+    "title": "Scanner Test Discovery",
+    "entryMethod": "qr",
+    "mechanic": "placeholder",
+    "discoveryCode": "H4DEV",
+    "advancesStory": false,
+    "rewards": []
+  }
+]

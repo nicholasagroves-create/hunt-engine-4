@@ -1,3 +1,5 @@
+import {resolveDiscovery,parseDiscoveryInput} from "../core/discovery.js";
+import {openCameraScanner} from "./scanner.js";
 // Task 7: configurable application shell. Mechanics and scanner arrive in Phase 2.
 const DEFAULT_NAV=[
  {id:"archive",label:"Archive",icon:"▦"},
@@ -35,7 +37,7 @@ export function mountShell(root,{game,content,store}){
  let screen=nav.some(t=>t.id===save.navigation.lastMeaningfulScreen)?save.navigation.lastMeaningfulScreen:nav[0].id;
  let tab=archive.some(t=>t.id===save.navigation.archiveTab)?save.navigation.archiveTab:archive[0]?.id;
  let selected=save.navigation.archiveItemId||null;
- let detail=null, puzzle=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
+ let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, scannerSession=null, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
  const scrolls={...(save.navigation.archiveScroll||{})};
  let screenScroll=0;
  const wrapper=el("div","app-shell");
@@ -44,10 +46,12 @@ export function mountShell(root,{game,content,store}){
  const remember=()=>{
   persist(s=>{s.navigation.lastMeaningfulScreen=screen;s.navigation.archiveTab=tab||null;s.navigation.archiveItemId=selected;s.navigation.archiveScroll=scrolls;});
  };
+ function stopScanner(){if(scannerSession){scannerSession.stop();scannerSession=null;}scanning=false;}
  function switchScreen(id){
   if(puzzle||onboarding)return;
+  stopScanner();manual=false;scanMessage="";
   if(screen==="archive")captureScroll();
-  screen=id;detail=null;remember();render();
+  screen=id;detail=null;remember();render();if(id==="scan")startScanner();
  }
  function captureScroll(){
   const pane=wrapper.querySelector(".screen-body");
@@ -63,7 +67,48 @@ export function mountShell(root,{game,content,store}){
   if(!persist(s=>{s.onboarding.completed=true;if(game.tutorial?.enabled!==true)s.onboarding.tutorialCompleted=true;}))return;
   onboarding=false;remember();render();
  }
- function renderArchive(body){
+async function startScanner(){
+  if(onboarding||puzzle||screen!=="scan")return;
+  stopScanner();manual=false;scanMessage="";scanning=true;render();
+  const video=wrapper.querySelector("#scanner-video");
+  if(!video)return;
+  const session=openCameraScanner(video,{onCode:raw=>handleDiscovery(raw),onError:message=>{scanMessage=message;scanning=false;render();}});
+  scannerSession=session;
+  try{await session.start();}catch(e){if(scannerSession===session){scanMessage=e.message||"Camera unavailable";scanning=false;render();}}
+ }
+ function handleDiscovery(raw){
+  const parsed=parseDiscoveryInput(raw,game.id,location.href);
+  if(!parsed.ok){scanMessage=parsed.message;render();return;}
+  const result=resolveDiscovery(parsed.code,content.puzzles||[],store.read());
+  if(!result.ok){scanMessage=result.message;render();return;}
+  stopScanner();manual=false;scanMessage="";
+  if(result.status==="locked"){scanMessage="This discovery is locked. Complete its prerequisites first.";render();return;}
+  if(result.status==="ready"){try{store.discoverPuzzle(result.puzzle.id);}catch(e){scanMessage=e.message;render();return;}}
+  activePuzzle=result.puzzle;puzzle=true;render();
+ }
+ function renderScanner(body){
+  const head=el("header","screen-header");head.append(el("h1","","Scan"));body.append(head);
+  const area=el("section","scanner-panel");
+  if(manual){
+   area.append(el("h2","","Enter discovery code"),el("p","muted","Enter the five-character code printed beneath the QR."));
+   const form=el("form","code-form");
+   const input=el("input","code-input");input.type="text";input.maxLength=5;input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="A7K3P";input.setAttribute("aria-label","Five-character discovery code");input.setAttribute("pattern","[A-Za-z0-9]{5}");input.required=true;
+   input.addEventListener("input",()=>{input.value=input.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5);});
+   form.append(input,btn("Find discovery",()=>{if(input.reportValidity())handleDiscovery(input.value);},"primary-button"));
+   form.addEventListener("submit",event=>{event.preventDefault();if(input.reportValidity())handleDiscovery(input.value);});
+   area.append(form,btn("← Back to camera",()=>{manual=false;startScanner();},"back-button"));
+  }else{
+   const camera=el("div","camera-frame");
+   const video=el("video","camera-video");video.id="scanner-video";video.autoplay=true;video.playsInline=true;video.muted=true;video.setAttribute("aria-label","Live QR camera");
+   camera.append(video,el("div","camera-guide"));area.append(camera);
+   area.append(el("p","muted","Point your camera at a hunt QR code."));
+   if(!scanning)area.append(btn("Open camera",startScanner,"primary-button"));
+   area.append(btn("Can't scan? Enter a 5-character code",()=>{stopScanner();manual=true;scanMessage="";render();},"manual-link"));
+  }
+  if(scanMessage){const error=el("p","scanner-message",scanMessage);error.setAttribute("role","status");area.append(error);}
+  body.append(area);
+ }
+  function renderArchive(body){
   const head=el("header","screen-header");head.append(el("h1","", "The Archive"));body.append(head);
   if(!archive.length){body.append(el("p","empty-state","No archive collections enabled for this adventure."));return;}
   if(archive.length>1){
@@ -96,16 +141,13 @@ export function mountShell(root,{game,content,store}){
  }
  function renderContent(body){
   if(screen==="archive"){renderArchive(body);return;}
+  if(screen==="scan"){renderScanner(body);return;}
   const t=nav.find(t=>t.id===screen);
   const heading=t?.label||screen;
   body.append(el("header","screen-header",undefined));
   body.lastChild.append(el("h1","",heading));
   const panel=el("section","feature-panel");
-  if(screen==="scan"){
-   panel.append(el("div","feature-icon","⌾"),el("h2","","Ready to explore?"),el("p","muted","Scan a hunt QR code to discover a puzzle. The camera scanner is coming in Phase 2."));
-   panel.append(btn("Preview puzzle screen",()=>{puzzle=true;render();},"primary-button"));
-   panel.append(el("p","fine-print","Preview only — this does not solve or unlock a puzzle."));
-  }else if(screen==="transmissions"){
+  if(screen==="transmissions"){
    panel.append(el("div","feature-icon","✉"),el("h2","","Transmissions"),el("p","muted","Clues and messages will appear here when the adventure sends them."));
   }else if(screen==="finale"){
    panel.append(el("div","feature-icon","✦"),el("h2","","Final mechanism"),el("p","muted","Your adventure's final challenge will be available when its conditions are met."));
@@ -130,9 +172,9 @@ export function mountShell(root,{game,content,store}){
   if(puzzle){
    const full=el("main","puzzle-screen");
    const top=el("header","puzzle-header");
-   top.append(btn("✕ Exit",()=>{puzzle=false;render();},"exit-button"),el("span","puzzle-label","Puzzle preview"));
+   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
    full.append(top);
-   const inner=el("section","puzzle-placeholder");inner.append(el("h1","","Puzzle workspace"),el("p","muted","Every puzzle mechanic will fit below the reserved Exit area. Exiting discards unfinished interactions."));full.append(inner);
+   const inner=el("section","puzzle-placeholder");inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"),el("p","muted","Discovery recognized. Puzzle mechanics arrive in a later Phase 2 task. Exit returns without completing this puzzle."));full.append(inner);
    wrapper.append(full);return;
   }
   const top=el("header","app-topbar");
@@ -149,4 +191,9 @@ export function mountShell(root,{game,content,store}){
   wrapper.append(bottom);
  }
  render();
+ if(!onboarding&&screen==="scan")requestAnimationFrame(startScanner);
+ const params=new URL(location.href).searchParams;
+ const incoming=params.get("code");
+ if(incoming){history.replaceState(null,"",location.pathname+location.hash);if(!onboarding){screen="scan";remember();render();handleDiscovery(incoming);}else{persist(s=>{s.onboarding.pendingInitialQr=incoming;});}}
+ window.addEventListener("pagehide",stopScanner);
 }
