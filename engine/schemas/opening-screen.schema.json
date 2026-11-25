@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "opening-screen",
+  "type": "object",
+  "required": [
+    "id",
+    "type"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": [
+        "access",
+        "studio",
+        "sponsor",
+        "title",
+        "narrative",
+        "instruction"
+      ]
+    },
+    "contentBlocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string",
+            "minLength": 1
+          },
+          "caption": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "background": {
+      "type": "object"
+    },
+    "music": {
+      "type": "object"
+    },
+    "presentation": {
+      "type": "object"
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "controls": {
+      "type": "object"
+    },
+    "displayConditions": {
+      "type": "object"
+    },
+    "frequency": {
+      "enum": [
+        "first-launch",
+        "cold-launch",
+        "conditional"
+      ]
+    },
+    "transition": {
+      "type": "object"
+    },
+    "advance": {
+      "enum": [
+        "manual",
+        "automatic"
+      ]
+    },
+    "skippable": {
+      "type": "boolean"
+    },
+    "externalLinks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "url"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https?://"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "grants": {
+      "type": "object",
+      "properties": {
+        "journals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "achievements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "characterReveals": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "variants": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "title"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "advance"
+        ],
+        "properties": {
+          "advance": {
+            "const": "manual"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "studio",
+              "sponsor",
+              "narrative"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "skippable"
+        ],
+        "properties": {
+          "skippable": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "access"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "skippable": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}
