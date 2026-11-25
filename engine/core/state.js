@@ -14,7 +14,7 @@ export function newSave(gameId){
  journals:{unlocked:[],read:[]},inventory:{collected:[],applied:[]},
  transmissions:{active:[],dismissed:[],pending:[]},achievements:[],
  finale:{completed:false,masteryCompleted:false},
- navigation:{lastMeaningfulScreen:null,lastViewedCharacterId:null,latestTileCharacterId:null},
+ navigation:{lastMeaningfulScreen:null,lastViewedCharacterId:null,latestTileCharacterId:null,archiveTab:null,archiveItemId:null,archiveScroll:{}},
  settings:{muted:false}};
 }
 function normalize(raw,gameId){
@@ -37,7 +37,8 @@ function normalize(raw,gameId){
  s.achievements=ids(raw.achievements);
  s.finale.completed=raw.finale?.completed===true;
  s.finale.masteryCompleted=raw.finale?.masteryCompleted===true;
- for(const k of ["lastMeaningfulScreen","lastViewedCharacterId","latestTileCharacterId"])s.navigation[k]=valid(raw.navigation?.[k])?raw.navigation[k]:null;
+ for(const k of ["lastMeaningfulScreen","lastViewedCharacterId","latestTileCharacterId","archiveTab","archiveItemId"])s.navigation[k]=valid(raw.navigation?.[k])?raw.navigation[k]:null;
+ if(object(raw.navigation?.archiveScroll))for(const [k,v] of Object.entries(raw.navigation.archiveScroll))if(valid(k)&&Number.isFinite(v)&&v>=0)s.navigation.archiveScroll[k]=Math.min(v,1000000);
  s.settings.muted=raw.settings?.muted===true;
  return s;
 }

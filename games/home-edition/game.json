@@ -45,5 +45,53 @@
   "launch": {
     "initialQrPolicy": "require-rescan",
     "resumePolicy": "last-meaningful-screen"
+  },
+  "navigation": [
+    {
+      "id": "archive",
+      "label": "Archive",
+      "icon": "▦"
+    },
+    {
+      "id": "scan",
+      "label": "Scan",
+      "icon": "⌾",
+      "prominent": true
+    },
+    {
+      "id": "transmissions",
+      "label": "Messages",
+      "icon": "✉",
+      "module": "transmissions"
+    },
+    {
+      "id": "finale",
+      "label": "Finale",
+      "icon": "✦",
+      "module": "finale"
+    }
+  ],
+  "archiveTabs": [
+    {
+      "id": "characters",
+      "label": "Characters",
+      "layout": "characters",
+      "module": "characters"
+    },
+    {
+      "id": "journal",
+      "label": "Journal",
+      "layout": "journal",
+      "module": "journal"
+    },
+    {
+      "id": "inventory",
+      "label": "Inventory",
+      "layout": "inventory",
+      "module": "inventory"
+    }
+  ],
+  "shell": {
+    "transition": "fade"
   }
 }
