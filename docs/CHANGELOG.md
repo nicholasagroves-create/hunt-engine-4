@@ -1,5 +1,10 @@
 # Development change log
 
+## 2026-11-25 — Task 6 local save-state foundation
+- Added game-isolated, versioned localStorage save store with durable accomplishments, onboarding, story, journal, inventory, transmission, archive and navigation fields.
+- Added atomic puzzle completion with idempotent rewards and preserved incompatible saves; unfinished puzzle attempts are never persisted.
+- Added self-contained save-state tests. Not yet wired into UI or phone-tested; cloud recovery and cross-device sync deferred.
+
 ## 2026-11-25 — Task 5 content loading and validation
 - Added adventure collection loader, dependency-free JSON Schema subset validator and cross-reference/duplicate/sequence/module checks.
 - Added readable validation errors to foundation screen; Home Edition content remains empty.
