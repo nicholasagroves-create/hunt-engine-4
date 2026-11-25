@@ -37,8 +37,34 @@
     },
     "navigation": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "prominent": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
       }
     },
     "onboarding": {
@@ -204,6 +230,46 @@
             }
           },
           "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "archiveTabs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "shell": {
+      "type": "object",
+      "properties": {
+        "transition": {
+          "enum": [
+            "none",
+            "fade"
+          ]
         }
       },
       "additionalProperties": false
