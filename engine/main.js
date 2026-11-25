@@ -1,0 +1,4 @@
+import {activeGame} from "../game-selection.js";
+const title=document.querySelector("#game"), status=document.querySelector("#status");
+try {const response=await fetch(new URL("../games/"+activeGame+"/game.json",import.meta.url));if(!response.ok)throw Error("Game configuration unavailable");const game=await response.json();if(game.id!==activeGame)throw Error("Game ID mismatch");title.textContent=game.name;status.textContent="Adventure loaded · Foundation ready";}catch(error){status.textContent=error.message;}
+if("serviceWorker" in navigator){navigator.serviceWorker.register(new URL("../service-worker.js",import.meta.url)).catch(error=>{status.textContent+=" · Offline setup failed";console.error(error);});}
