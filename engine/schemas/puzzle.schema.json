@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "puzzle",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "entryMethod",
+    "mechanic"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entryMethod": {
+      "enum": [
+        "qr",
+        "app"
+      ]
+    },
+    "mechanic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "mechanicConfig": {
+      "type": "object"
+    },
+    "solution": {},
+    "location": {
+      "type": "object"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "advancesStory": {
+      "type": "boolean"
+    },
+    "rewards": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "archiveIcon": {
+      "type": "string"
+    },
+    "presentation": {
+      "type": "object"
+    },
+    "enabled": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

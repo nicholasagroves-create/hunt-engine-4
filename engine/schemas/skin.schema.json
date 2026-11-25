@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "skin",
+  "type": "object",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "branding": {
+      "type": "object"
+    },
+    "palette": {
+      "type": "object"
+    },
+    "typography": {
+      "type": "object"
+    },
+    "textures": {
+      "type": "object"
+    },
+    "icons": {
+      "type": "object"
+    },
+    "buttons": {
+      "type": "object"
+    },
+    "sounds": {
+      "type": "object"
+    },
+    "animations": {
+      "type": "object"
+    },
+    "templates": {
+      "type": "object"
+    },
+    "terminology": {
+      "type": "object"
+    },
+    "pwaArtwork": {
+      "type": "object"
+    },
+    "qrArtwork": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

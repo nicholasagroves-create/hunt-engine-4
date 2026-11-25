@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "journal",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "contentBlocks"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "author": {
+      "type": "object"
+    },
+    "date": {
+      "type": "string"
+    },
+    "contentBlocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "template": {
+      "type": "string",
+      "minLength": 1
+    },
+    "presentation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

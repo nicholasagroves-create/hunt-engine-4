@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "transmission",
+  "type": "object",
+  "required": [
+    "id",
+    "targetPuzzleId",
+    "contentBlocks"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetPuzzleId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sender": {
+      "type": "object"
+    },
+    "title": {
+      "type": "string"
+    },
+    "contentBlocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "priority": {
+      "type": "number"
+    },
+    "presentation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

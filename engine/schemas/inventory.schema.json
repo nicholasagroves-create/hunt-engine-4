@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "inventory",
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "icon": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "contentBlocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "possession",
+          "inspection",
+          "application"
+        ]
+      }
+    },
+    "presentation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

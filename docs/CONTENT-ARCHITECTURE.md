@@ -1,0 +1,7 @@
+# Content architecture v1.0
+
+Approved design: all modules optional except puzzle controller and save system. Stable IDs; no fixed counts. Nine JSON Schema draft 2020-12 record definitions in engine/schemas. Game content paths are relative to game.json; each collection is an array of records. Empty collections valid during foundation. Nested condition, mechanic, sender, presentation and navigation contracts are intentionally provisional until their controllers are implemented.
+
+Story chains contain zero or more ordered opening and closing journal IDs surrounding one eligible first-time puzzle completion. All applicable journals unlock even if skipped. Abandoned openings persist; next puzzle uses current chain. Explicit archiveAssignment determines character slots, not journal authors or counts. Journal blocks are ordered multimedia. Inventory remains collected after use. Multiple transmissions per target, one active per target; optional clues recycle via “Show me another clue”, with first-use and persistent explanation. Achievements automatically awarded once. Skin inheritance: default, adventure, module, packet override; bespoke narrative presentation allowed.
+
+Task 5: load collections and validate schemas, references, uniqueness, sequence, mechanic contracts and module compatibility. No runtime validation in Task 4. Client-side solutions are inspectable. No final adventure content authored.

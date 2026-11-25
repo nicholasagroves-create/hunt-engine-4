@@ -1,5 +1,38 @@
 {
   "id": "home-edition",
   "name": "Hunt: Home Edition",
-  "version": 1
+  "version": 1,
+  "schemaVersion": 1,
+  "skinId": "home-default",
+  "modules": {
+    "qr": true,
+    "characters": true,
+    "journal": true,
+    "inventory": true,
+    "transmissions": true,
+    "finale": true,
+    "achievements": true
+  },
+  "onboarding": {
+    "enabled": true
+  },
+  "tutorial": {
+    "enabled": false
+  },
+  "transmissionSettings": {
+    "maxActive": 2
+  },
+  "paymentSettings": {
+    "required": false
+  },
+  "content": {
+    "puzzles": "content/puzzles.json",
+    "storyChains": "content/storyChains.json",
+    "characters": "content/characters.json",
+    "journals": "content/journals.json",
+    "inventory": "content/inventory.json",
+    "transmissions": "content/transmissions.json",
+    "achievements": "content/achievements.json",
+    "skins": "content/skins.json"
+  }
 }

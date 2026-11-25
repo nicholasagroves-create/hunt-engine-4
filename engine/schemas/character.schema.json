@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "character",
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "portrait": {
+      "type": "string"
+    },
+    "unknownPortrait": {
+      "type": "string"
+    },
+    "completedPortrait": {
+      "type": "string"
+    },
+    "biography": {
+      "type": "string"
+    },
+    "biographySections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "contentBlocks"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contentBlocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "text",
+                    "image",
+                    "audio",
+                    "video",
+                    "document"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "src": {
+                  "type": "string"
+                },
+                "transcript": {
+                  "type": "string"
+                },
+                "alt": {
+                  "type": "string"
+                },
+                "caption": {
+                  "type": "string"
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "text"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "text"
+                    ]
+                  },
+                  "else": {
+                    "required": [
+                      "src"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video",
+              "document"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            },
+            "else": {
+              "required": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "initialVisibility": {
+      "enum": [
+        "hidden",
+        "unknown",
+        "revealed"
+      ]
+    },
+    "displayOrder": {
+      "type": "integer"
+    },
+    "presentation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}
