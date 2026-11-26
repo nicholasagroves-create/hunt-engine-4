@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "dev-character-one",
+    "name": "Test Character One",
+    "initialVisibility": "hidden"
+  },
+  {
+    "id": "dev-character-two",
+    "name": "Test Character Two",
+    "initialVisibility": "hidden"
+  }
+]

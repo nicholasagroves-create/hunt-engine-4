@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "dev-chain-one",
+    "sequence": 1,
+    "openingEntries": [
+      "dev-opening-one"
+    ],
+    "closingEntries": [
+      "dev-closing-one"
+    ],
+    "archiveAssignment": "dev-character-one"
+  },
+  {
+    "id": "dev-chain-two",
+    "sequence": 2,
+    "openingEntries": [
+      "dev-opening-two"
+    ],
+    "closingEntries": [
+      "dev-closing-two"
+    ],
+    "archiveAssignment": "dev-character-two"
+  }
+]

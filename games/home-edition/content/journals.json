@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "id": "dev-opening-one",
+    "title": "Chapter 1 — Opening",
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Neutral test opening for chapter one. Scan either S4A1B or S4B2C to advance."
+      }
+    ]
+  },
+  {
+    "id": "dev-closing-one",
+    "title": "Chapter 1 — Closing",
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Chapter one closed. The next chapter is now available."
+      }
+    ]
+  },
+  {
+    "id": "dev-opening-two",
+    "title": "Chapter 2 — Opening",
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Neutral test opening for chapter two. Scan S4C3D to advance."
+      }
+    ]
+  },
+  {
+    "id": "dev-closing-two",
+    "title": "Chapter 2 — Closing",
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Chapter two completed."
+      }
+    ]
+  }
+]

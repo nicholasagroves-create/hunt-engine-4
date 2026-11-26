@@ -14,5 +14,53 @@
       }
     ],
     "solution": "COMPASS"
+  },
+  {
+    "id": "dev-story-a",
+    "title": "Story Test S4A1B",
+    "entryMethod": "qr",
+    "mechanic": "answer-entry",
+    "discoveryCode": "S4A1B",
+    "advancesStory": true,
+    "rewards": [],
+    "instructions": [
+      {
+        "type": "text",
+        "text": "Engine story test: enter NORTH to complete this puzzle."
+      }
+    ],
+    "solution": "NORTH"
+  },
+  {
+    "id": "dev-story-b",
+    "title": "Story Test S4B2C",
+    "entryMethod": "qr",
+    "mechanic": "answer-entry",
+    "discoveryCode": "S4B2C",
+    "advancesStory": true,
+    "rewards": [],
+    "instructions": [
+      {
+        "type": "text",
+        "text": "Engine story test: enter EAST to complete this puzzle."
+      }
+    ],
+    "solution": "EAST"
+  },
+  {
+    "id": "dev-story-c",
+    "title": "Story Test S4C3D",
+    "entryMethod": "qr",
+    "mechanic": "answer-entry",
+    "discoveryCode": "S4C3D",
+    "advancesStory": true,
+    "rewards": [],
+    "instructions": [
+      {
+        "type": "text",
+        "text": "Engine story test: enter SOUTH to complete this puzzle."
+      }
+    ],
+    "solution": "SOUTH"
   }
 ]
