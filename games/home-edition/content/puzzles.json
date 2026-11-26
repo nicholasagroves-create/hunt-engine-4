@@ -78,16 +78,16 @@
     "mechanicConfig": {
       "requiredJournalId": "dev-opening-one",
       "symbols": [
-        "sun",
         "star",
         "moon",
         "cloud",
         "anchor",
         "mountain",
+        "sun",
         "tree",
         "wave"
       ],
-      "targetSymbolIndex": 0
+      "targetSymbolIndex": 5
     },
     "rewards": []
   }
