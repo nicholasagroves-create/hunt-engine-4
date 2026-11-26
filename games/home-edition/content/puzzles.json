@@ -72,7 +72,7 @@
     "instructions": [
       {
         "type": "text",
-        "text": "Look east to the rising sun. Spin the compass rose until E points toward the sun symbol."
+        "text": "Look east to the rising sun."
       }
     ],
     "mechanicConfig": {
