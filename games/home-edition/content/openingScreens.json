@@ -1,1 +1,77 @@
-[]
+[
+  {
+    "id": "dev-access",
+    "type": "access",
+    "presentation": {
+      "heading": "Player access"
+    },
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Development test: enter a name to create a local player identity."
+      }
+    ],
+    "skippable": false,
+    "advance": "manual"
+  },
+  {
+    "id": "dev-studio",
+    "type": "studio",
+    "presentation": {
+      "heading": "Studio introduction"
+    },
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Studio presentation test. This content belongs to the adventure packet, not the engine."
+      }
+    ],
+    "skippable": true,
+    "advance": "manual"
+  },
+  {
+    "id": "dev-sponsor",
+    "type": "sponsor",
+    "presentation": {
+      "heading": "Sponsor presentation"
+    },
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Sponsor presentation test. A future client can replace this with their own identity and assets."
+      }
+    ],
+    "skippable": true,
+    "advance": "manual"
+  },
+  {
+    "id": "dev-title",
+    "type": "title",
+    "presentation": {
+      "heading": "Adventure title"
+    },
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Title-card test. Continue must be tapped explicitly."
+      }
+    ],
+    "skippable": false,
+    "advance": "manual"
+  },
+  {
+    "id": "dev-narrative",
+    "type": "narrative",
+    "presentation": {
+      "heading": "Narrative introduction"
+    },
+    "contentBlocks": [
+      {
+        "type": "text",
+        "text": "Narrative introduction test. A real adventure will supply its own story."
+      }
+    ],
+    "skippable": true,
+    "advance": "manual"
+  }
+]
