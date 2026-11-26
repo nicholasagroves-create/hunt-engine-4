@@ -116,7 +116,7 @@ export function mountShell(root,{game,content,store}){
    const target=(content.puzzles||[]).find(p=>p.id===step.puzzleId);
    if(!target){stage.append(el("p","muted","Tutorial puzzle missing."));}
    else if(!store.read().journals.unlocked.includes(target.mechanicConfig?.requiredJournalId)&&!replayOpening){stage.append(el("p","muted","Journal 1 must be unlocked before the tutorial."));}
-   else stage.append(btn("Begin compass puzzle",()=>{activePuzzle=target;tutorialStep=step;tutorialPreview=replayOpening||store.read().story.completedChains.length>0;puzzleReplay=tutorialPreview;puzzleController=createPuzzleController({puzzle:target,store,storyChains:content.storyChains||[],replay:tutorialPreview});puzzle=true;render();},"primary-button"));
+   else stage.append(btn("Begin compass puzzle",()=>{activePuzzle=target;tutorialStep=step;tutorialPreview=replayOpening;puzzleReplay=tutorialPreview;puzzleController=createPuzzleController({puzzle:target,store,storyChains:content.storyChains||[],replay:tutorialPreview,tutorialShelfCharacterId:store.read().story.completedChains.length?(content.storyChains||[])[0]?.archiveAssignment:null});puzzle=true;render();},"primary-button"));
   }else{
    stage.append(btn(step.type==="launch"?"Enter adventure":step.type==="access"?"Continue":"Continue",()=>{if(replayOpening){if(replayIndex<opening.length-1){replayIndex++;render();}else{replayOpening=false;render();}}else advanceOpening(step);},"primary-button"));
    if(!replayOpening&&canSkipOpeningStep(step))stage.append(btn("Skip this screen",()=>advanceOpening(step,true),"opening-skip"));
@@ -270,7 +270,7 @@ export function mountShell(root,{game,content,store}){
   const top=el("header","app-topbar");
   const identity=el("div","brand");identity.append(el("span","brand-mark","✦"),el("span","",game.name));top.append(identity);
   top.append(btn("Replay opening",()=>{stopScanner();replayIndex=0;replayOpening=true;render();},"dev-replay"));
-  if(game.tutorial?.enabled)top.append(btn("Test tutorial",()=>{const step=opening.find(s=>s.type==="tutorial-puzzle");if(!step)return;stopScanner();activePuzzle=(content.puzzles||[]).find(p=>p.id===step.puzzleId);if(!activePuzzle)return;tutorialStep=step;tutorialPreview=true;puzzleReplay=true;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:true});puzzle=true;render();},"dev-replay"));
+  if(game.tutorial?.enabled)top.append(btn("Complete tutorial",()=>{const step=opening.find(s=>s.type==="tutorial-puzzle");if(!step)return;stopScanner();activePuzzle=(content.puzzles||[]).find(p=>p.id===step.puzzleId);if(!activePuzzle)return;tutorialStep=step;tutorialPreview=false;puzzleReplay=store.read().puzzles.completed.includes(activePuzzle.id);puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:puzzleReplay,tutorialShelfCharacterId:(content.storyChains||[])[0]?.archiveAssignment});puzzle=true;render();},"dev-replay"));
   wrapper.append(top);
   const body=el("main","app-content");body.id="main-content";renderContent(body);wrapper.append(body);
   const bottom=el("nav","bottom-nav");bottom.setAttribute("aria-label","Main navigation");
