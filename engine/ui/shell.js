@@ -1,3 +1,4 @@
+import {openCurrentChain,currentChain} from "../core/story-controller.js";
 import {createPuzzleController} from "../core/puzzle-controller.js";
 import {openingSteps,nextOpeningStep,canSkipOpeningStep} from "../core/onboarding.js";
 import {resolveDiscovery,parseDiscoveryInput} from "../core/discovery.js";
@@ -135,7 +136,7 @@ export function mountShell(root,{game,content,store}){
   stopScanner();manual=false;scanMessage="";
   if(result.status==="locked"){scanMessage="This discovery is locked. Complete its prerequisites first.";render();return;}
   if(result.status==="ready"){try{store.discoverPuzzle(result.puzzle.id);}catch(e){scanMessage=e.message;render();return;}}
-  activePuzzle=result.puzzle;puzzleController=createPuzzleController({puzzle:activePuzzle,store});puzzle=true;render();
+  activePuzzle=result.puzzle;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[]});puzzle=true;render();
  }
  function renderScanner(body){
   const head=el("header","screen-header");head.append(el("h1","","Scan"));body.append(head);
@@ -160,7 +161,9 @@ export function mountShell(root,{game,content,store}){
   body.append(area);
  }
   function renderArchive(body){
+  const active=currentChain(content.storyChains||[],store.read());
   const head=el("header","screen-header");head.append(el("h1","", "The Archive"));body.append(head);
+  if(active){const status=el("div","story-status");status.append(el("strong","",`Story chapter ${active.sequence}`),el("p","muted",store.read().story.openedChains.includes(active.id)?"Chapter opened. Complete an eligible puzzle to advance.":"A new chapter is ready."));if(!store.read().story.openedChains.includes(active.id))status.append(btn("Open chapter",()=>{try{openCurrentChain(store,content.storyChains);render();}catch(e){window.alert(e.message);}},"primary-button"));body.append(status);}else if((content.storyChains||[]).length)body.append(el("p","story-status","All test chapters completed."));
   if(!archive.length){body.append(el("p","empty-state","No archive collections enabled for this adventure."));return;}
   if(archive.length>1){
    const tabs=el("div","archive-tabs");tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","Archive collections");
@@ -172,14 +175,16 @@ export function mountShell(root,{game,content,store}){
   if(!t)return;
   if(detail){
    pane.append(btn("← Back to "+t.label,()=>{detail=null;render();},"back-button"));
-   pane.append(el("h2","",detail.title),el("p","muted","Content view placeholder · "+t.label));
+   pane.append(el("h2","",detail.title));
+   if(t.layout==="journal")for(const block of detail.contentBlocks||[])if(block.type==="text")pane.append(el("p","journal-entry",block.text));
+   else pane.append(el("p","muted","Content view placeholder · "+t.label));
   }else if(t.layout==="characters"){
    const revealed=new Set(store.read().characters.revealed);
    const items=(content.characters||[]).filter(c=>revealed.has(c.id)).map(c=>({id:c.id,title:c.name||c.title||c.id}));
    pane.append(listPanel("Your characters","Characters and their puzzle tiles appear here as the story unfolds.",items,openItem));
   }else if(t.layout==="journal"){
    const unlocked=new Set(store.read().journals.unlocked);
-   const items=(content.journals||[]).filter(j=>unlocked.has(j.id)).map(j=>({id:j.id,title:j.title||j.id}));
+   const items=(content.journals||[]).filter(j=>unlocked.has(j.id)).map(j=>({id:j.id,title:j.title||j.id,contentBlocks:j.contentBlocks}));
    pane.append(listPanel("Your journal","Collected story entries, in the order this adventure defines.",items,openItem));
   }else if(t.layout==="inventory"){
    const collected=new Set(store.read().inventory.collected);
@@ -220,6 +225,7 @@ export function mountShell(root,{game,content,store}){
    inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"));
    if(puzzleController?.completed){
     inner.append(el("p","puzzle-success","✓ Puzzle completed"),el("p","muted","This discovery is already recorded. Reopening it never awards progress twice."));
+    if(activePuzzle?.advancesStory)inner.append(el("p","muted","Check Archive → Journal for story updates."));
    }else if(activePuzzle?.mechanic==="answer-entry"){
     for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
     const input=el("input","puzzle-answer");input.type="text";input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="Your answer";input.setAttribute("aria-label","Puzzle answer");
