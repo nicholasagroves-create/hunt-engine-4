@@ -37,3 +37,12 @@ Correct sequence: LIGHT -> NORTH -> SEVEN -> ECHO -> DAWN. Fragment order of acq
 - Finale validates five-fragment order, completes final chapter, and shows ending.
 
 These are design requirements, not a claim that current engine code already implements them.
+
+## Puzzle introduction and launch (approved 2026-11-26)
+
+- Every puzzle has a narrative introduction screen with its title, location/context, brief story tie-in, and a **Launch Puzzle** button.
+- Scanner discovery opens the introduction first, not the interactive module. The module starts only when the player presses Launch Puzzle.
+- Introduction text and presentation metadata belong to the adventure's puzzle packet; they are not embedded in the generic engine or required inside the independent puzzle module.
+- The engine supplies a generic introduction/launch presentation and invokes the puzzle through the universal host interface. The module remains unaware of the story or character assignments.
+- Abandoning an incomplete puzzle loses its internal progress; reopening returns to the introduction and launches a fresh instance. Replay of a completed puzzle also begins with its introduction and cannot grant rewards twice.
+- Records Room example: **The Missing Transmission** introduction references Arthur's maintenance records and the lamp; launching opens an automatically looping Morse signal (SIGNAL), with a key on the right and no play button; reward LIGHT is awarded by the engine on completion.
