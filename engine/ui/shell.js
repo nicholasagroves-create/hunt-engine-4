@@ -1,3 +1,4 @@
+import {createPuzzleController} from "../core/puzzle-controller.js";
 import {openingSteps,nextOpeningStep,canSkipOpeningStep} from "../core/onboarding.js";
 import {resolveDiscovery,parseDiscoveryInput} from "../core/discovery.js";
 import {openCameraScanner} from "./scanner.js";
@@ -39,7 +40,7 @@ export function mountShell(root,{game,content,store}){
  let screen=nav.some(t=>t.id===save.navigation.lastMeaningfulScreen)?save.navigation.lastMeaningfulScreen:nav[0].id;
  let tab=archive.some(t=>t.id===save.navigation.archiveTab)?save.navigation.archiveTab:archive[0]?.id;
  let selected=save.navigation.archiveItemId||null;
- let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
+ let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, puzzleController=null, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
  const scrolls={...(save.navigation.archiveScroll||{})};
  let screenScroll=0;
  const wrapper=el("div","app-shell");
@@ -134,7 +135,7 @@ export function mountShell(root,{game,content,store}){
   stopScanner();manual=false;scanMessage="";
   if(result.status==="locked"){scanMessage="This discovery is locked. Complete its prerequisites first.";render();return;}
   if(result.status==="ready"){try{store.discoverPuzzle(result.puzzle.id);}catch(e){scanMessage=e.message;render();return;}}
-  activePuzzle=result.puzzle;puzzle=true;render();
+  activePuzzle=result.puzzle;puzzleController=createPuzzleController({puzzle:activePuzzle,store});puzzle=true;render();
  }
  function renderScanner(body){
   const head=el("header","screen-header");head.append(el("h1","","Scan"));body.append(head);
@@ -213,9 +214,22 @@ export function mountShell(root,{game,content,store}){
   if(puzzle){
    const full=el("main","puzzle-screen");
    const top=el("header","puzzle-header");
-   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
+   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;puzzleController=null;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
    full.append(top);
-   const inner=el("section","puzzle-placeholder");inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"),el("p","muted","Discovery recognized. Puzzle mechanics arrive in a later Phase 2 task. Exit returns without completing this puzzle."));full.append(inner);
+   const inner=el("section","puzzle-placeholder");
+   inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"));
+   if(puzzleController?.completed){
+    inner.append(el("p","puzzle-success","✓ Puzzle completed"),el("p","muted","This discovery is already recorded. Reopening it never awards progress twice."));
+   }else if(activePuzzle?.mechanic==="answer-entry"){
+    for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
+    const input=el("input","puzzle-answer");input.type="text";input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="Your answer";input.setAttribute("aria-label","Puzzle answer");
+    const status=el("p","puzzle-feedback");status.setAttribute("role","status");
+    const form=el("form","puzzle-form");form.append(input);
+    const submit=btn("Submit answer",()=>{puzzleController.setAnswer(input.value);const result=puzzleController.submit();if(result.status==="completed")render();else status.textContent=result.message||"";},"primary-button");
+    form.append(submit);form.addEventListener("submit",event=>{event.preventDefault();submit.click();});
+    inner.append(form,status,el("p","fine-print","Exit discards your unfinished answer."));
+   }else inner.append(el("p","muted","This mechanic is not installed yet. Exit without recording a completion."));
+   full.append(inner);
    wrapper.append(full);return;
   }
   const top=el("header","app-topbar");
