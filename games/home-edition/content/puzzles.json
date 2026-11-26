@@ -62,5 +62,33 @@
       }
     ],
     "solution": "SOUTH"
+  },
+  {
+    "id": "dev-compass-tutorial",
+    "title": "Compass Calibration",
+    "entryMethod": "app",
+    "mechanic": "compass-rotation",
+    "advancesStory": true,
+    "instructions": [
+      {
+        "type": "text",
+        "text": "Look east to the rising sun. Spin the compass rose until E points toward the sun symbol."
+      }
+    ],
+    "mechanicConfig": {
+      "requiredJournalId": "dev-opening-one",
+      "symbols": [
+        "sun",
+        "star",
+        "moon",
+        "cloud",
+        "anchor",
+        "mountain",
+        "tree",
+        "wave"
+      ],
+      "targetSymbolIndex": 0
+    },
+    "rewards": []
   }
 ]

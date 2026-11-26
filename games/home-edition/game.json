@@ -17,8 +17,13 @@
     "enabled": true
   },
   "tutorial": {
-    "enabled": false,
-    "steps": [],
+    "enabled": true,
+    "steps": [
+      {
+        "type": "puzzle",
+        "id": "dev-compass-tutorial"
+      }
+    ],
     "allowReplay": true
   },
   "transmissionSettings": {
