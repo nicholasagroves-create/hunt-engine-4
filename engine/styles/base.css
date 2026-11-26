@@ -6,3 +6,5 @@
 .puzzle-form{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:330px}.puzzle-answer{width:100%;padding:15px;border-radius:13px;background:#0a1e26;border:1px solid #e9c77c;color:#fff;font-size:20px;text-align:center}.puzzle-feedback{min-height:24px;color:#f3d38d}.puzzle-success{font-size:21px;color:#e9c77c;font-weight:750}
 
 .story-status{border:1px solid #59777a;border-radius:12px;margin:10px 20px;padding:12px;text-align:center}.story-status p{margin:8px 0}.story-status button{margin:5px}.journal-entry{line-height:1.65;font-size:17px;margin:18px 0}
+
+.character-shelf{margin-top:22px}.character-shelf h3{font-size:19px;margin-bottom:14px}.puzzle-tile{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;margin:10px 0;padding:14px;border-radius:14px;background:#24444c;border:1px solid #718c8b;color:#f7e8c9;text-align:left}.puzzle-tile-icon{color:#e8c77a;font-size:25px}.puzzle-tile-title{flex:1;font-size:16px;font-weight:650}.puzzle-tile-action{font-size:12px;color:#e8c77a;white-space:nowrap}
