@@ -1,3 +1,4 @@
+import {mountCompass} from "./compass.js";
 import {openCurrentChain,currentChain} from "../core/story-controller.js";
 import {createPuzzleController} from "../core/puzzle-controller.js";
 import {openingSteps,nextOpeningStep,canSkipOpeningStep} from "../core/onboarding.js";
@@ -41,7 +42,7 @@ export function mountShell(root,{game,content,store}){
  let screen=nav.some(t=>t.id===save.navigation.lastMeaningfulScreen)?save.navigation.lastMeaningfulScreen:nav[0].id;
  let tab=archive.some(t=>t.id===save.navigation.archiveTab)?save.navigation.archiveTab:archive[0]?.id;
  let selected=save.navigation.archiveItemId||null;
- let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, puzzleController=null, puzzleReplay=false, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
+ let tutorialPreview=false, tutorialStep=null, detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, puzzleController=null, puzzleReplay=false, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
  const scrolls={...(save.navigation.archiveScroll||{})};
  let screenScroll=0;
  const wrapper=el("div","app-shell");
@@ -69,6 +70,8 @@ export function mountShell(root,{game,content,store}){
  }
  function advanceOpening(step,skipped=false){
   if(step.type==="tutorial-puzzle")return;
+  if(!replayOpening&&step.grants){if(!persist(s=>{for(const id of step.grants.journals||[])if(!s.journals.unlocked.includes(id))s.journals.unlocked.push(id);for(const id of step.grants.inventory||[])if(!s.inventory.collected.includes(id))s.inventory.collected.push(id);for(const id of step.grants.achievements||[])if(!s.achievements.includes(id))s.achievements.push(id);}))return;}
+  if(!replayOpening&&step.id==="dev-narrative"&&!store.read().story.completedChains.length){try{openCurrentChain(store,content.storyChains||[]);}catch(e){window.alert(e.message);return;}}
   if(step.type==="access"){
    const input=wrapper.querySelector("#player-access-name");
    const name=input?.value.trim();
@@ -110,7 +113,10 @@ export function mountShell(root,{game,content,store}){
    const input=el("input","opening-name");input.id="player-access-name";input.type="text";input.maxLength=100;input.autocomplete="name";input.placeholder="Your name";input.value=store.read().player.name||"";input.setAttribute("aria-label","Player name");stage.append(input);
   }
   if(step.type==="tutorial-puzzle"){
-   stage.append(el("p","muted","This is a required tutorial puzzle. It will be playable when the puzzle controller is implemented. It cannot be skipped or marked complete here."));
+   const target=(content.puzzles||[]).find(p=>p.id===step.puzzleId);
+   if(!target){stage.append(el("p","muted","Tutorial puzzle missing."));}
+   else if(!store.read().journals.unlocked.includes(target.mechanicConfig?.requiredJournalId)&&!replayOpening){stage.append(el("p","muted","Journal 1 must be unlocked before the tutorial."));}
+   else stage.append(btn("Begin compass puzzle",()=>{activePuzzle=target;tutorialStep=step;tutorialPreview=replayOpening||store.read().story.completedChains.length>0;puzzleReplay=tutorialPreview;puzzleController=createPuzzleController({puzzle:target,store,storyChains:content.storyChains||[],replay:tutorialPreview});puzzle=true;render();},"primary-button"));
   }else{
    stage.append(btn(step.type==="launch"?"Enter adventure":step.type==="access"?"Continue":"Continue",()=>{if(replayOpening){if(replayIndex<opening.length-1){replayIndex++;render();}else{replayOpening=false;render();}}else advanceOpening(step);},"primary-button"));
    if(!replayOpening&&canSkipOpeningStep(step))stage.append(btn("Skip this screen",()=>advanceOpening(step,true),"opening-skip"));
@@ -233,18 +239,21 @@ export function mountShell(root,{game,content,store}){
  function render(){
   wrapper.replaceChildren();
   wrapper.className="app-shell transition-"+(transition==="none"?"none":"fade");
-  if(onboarding||replayOpening){renderOpening();return;}
   if(puzzle){
    const full=el("main","puzzle-screen");
    const top=el("header","puzzle-header");
-   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;puzzleController=null;puzzleReplay=false;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
+   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;puzzleController=null;puzzleReplay=false;tutorialStep=null;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
    full.append(top);
    const inner=el("section","puzzle-placeholder");
    inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"));
    if(puzzleController?.completed){
     inner.append(el("p","puzzle-success",puzzleReplay?"✓ Replay solved":"✓ Puzzle completed"),el("p","muted",puzzleReplay?"Your original completion and shelf placement are unchanged.":"This discovery is already recorded. Reopening it never awards progress twice."));
     if(!puzzleReplay&&store.read().puzzles.completed.includes(activePuzzle?.id))inner.append(btn("Replay puzzle",()=>{puzzleReplay=true;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:true});render();},"primary-button"));
+    if(tutorialStep){inner.append(btn("Continue",()=>{if(!tutorialPreview)persist(s=>{if(!s.onboarding.completedScreens.includes(tutorialStep.id))s.onboarding.completedScreens.push(tutorialStep.id);s.onboarding.tutorialCompleted=true;});puzzle=false;activePuzzle=null;puzzleController=null;puzzleReplay=false;tutorialStep=null;if(tutorialPreview){tutorialPreview=false;if(replayOpening){replayIndex++;}else{screen="archive";tab="characters";detail=null;}}render();},"primary-button"));}
     if(activePuzzle?.advancesStory&&!puzzleReplay)inner.append(el("p","muted","Check Archive → Journal for story updates."));
+   }else if(activePuzzle?.mechanic==="compass-rotation"){
+    for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
+    mountCompass(inner,{puzzle:activePuzzle,onSubmit:()=>{const result=puzzleController.submit();if(result.status==="completed")render();}});
    }else if(activePuzzle?.mechanic==="answer-entry"){
     for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
     const input=el("input","puzzle-answer");input.type="text";input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="Your answer";input.setAttribute("aria-label","Puzzle answer");
@@ -257,9 +266,11 @@ export function mountShell(root,{game,content,store}){
    full.append(inner);
    wrapper.append(full);return;
   }
+  if(onboarding||replayOpening){renderOpening();return;}
   const top=el("header","app-topbar");
   const identity=el("div","brand");identity.append(el("span","brand-mark","✦"),el("span","",game.name));top.append(identity);
   top.append(btn("Replay opening",()=>{stopScanner();replayIndex=0;replayOpening=true;render();},"dev-replay"));
+  if(game.tutorial?.enabled)top.append(btn("Test tutorial",()=>{const step=opening.find(s=>s.type==="tutorial-puzzle");if(!step)return;stopScanner();activePuzzle=(content.puzzles||[]).find(p=>p.id===step.puzzleId);if(!activePuzzle)return;tutorialStep=step;tutorialPreview=true;puzzleReplay=true;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:true});puzzle=true;render();},"dev-replay"));
   wrapper.append(top);
   const body=el("main","app-content");body.id="main-content";renderContent(body);wrapper.append(body);
   const bottom=el("nav","bottom-nav");bottom.setAttribute("aria-label","Main navigation");

@@ -6,6 +6,7 @@ export function createPuzzleController({puzzle,store,storyChains=[],replay=false
  function setAnswer(value){answer=String(value).slice(0,100);}
  function submit(){
   if(finished||(alreadyCompleted&&!replay))return {status:"completed",awarded:false};
+  if(puzzle.mechanic==="compass-rotation"){const result=alreadyCompleted?{awarded:false}:completeWithStory(store,puzzle,storyChains);finished=true;return {status:"completed",awarded:result.awarded};}
   if(puzzle.mechanic!=="answer-entry")return {status:"unsupported",message:"This mechanic is not installed yet."};
   const expected=String(puzzle.solution??"").trim().toUpperCase();
   if(!expected)return {status:"unsupported",message:"This puzzle has no configured solution."};

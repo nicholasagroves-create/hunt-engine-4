@@ -72,6 +72,11 @@
       }
     ],
     "skippable": true,
-    "advance": "manual"
+    "advance": "manual",
+    "grants": {
+      "journals": [
+        "dev-opening-one"
+      ]
+    }
   }
 ]
