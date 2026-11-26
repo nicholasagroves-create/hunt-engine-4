@@ -94,6 +94,16 @@ export function mountShell(root,{game,content,store}){
   }
   render();
  }
+ function skipOpeningForDev(){
+  const first=(content.storyChains||[]).slice().sort((a,b)=>a.sequence-b.sequence)[0];
+  if(!persist(s=>{s.player.access="active";if(!s.player.name)s.player.name="DEV Tester";s.onboarding.completed=true;s.onboarding.completedScreens=[...new Set([...s.onboarding.completedScreens,...opening.filter(x=>x.type!=="tutorial-puzzle").map(x=>x.id)])];s.onboarding.tutorialCompleted=false;if(first){for(const j of first.openingEntries||[])if(!s.journals.unlocked.includes(j))s.journals.unlocked.push(j);if(first.archiveAssignment&&!s.characters.revealed.includes(first.archiveAssignment))s.characters.revealed.push(first.archiveAssignment);if(!s.story.openedChains.includes(first.id))s.story.openedChains.push(first.id);if(!s.story.completedChains.includes(first.id))s.story.activeChainId=first.id;}}))return;
+  onboarding=false;replayOpening=false;screen="archive";tab="characters";detail=null;render();
+ }
+ function resetDevProgress(){
+  if(!window.confirm("Reset this DEV test run? All local test completions and shelf tiles will be cleared."))return;
+  if(!persist(s=>{const fresh={player:{name:"DEV Tester",access:"active"},onboarding:{completed:false,completedScreens:[],skippedScreens:[],tutorialSteps:[],tutorialCompleted:false,pendingInitialQr:null,rescanPromptShown:false},puzzles:{discovered:[],completed:[]},story:{openedChains:[],completedChains:[],activeChainId:null},characters:{revealed:[],completed:[],biographySections:[],tiles:[]},journals:{unlocked:[],read:[]},inventory:{collected:[],applied:[]},transmissions:{active:[],dismissed:[],pending:[]},achievements:[],finale:{completed:false,masteryCompleted:false},navigation:{lastMeaningfulScreen:null,lastViewedCharacterId:null,latestTileCharacterId:null,archiveTab:null,archiveItemId:null,archiveScroll:{}}};Object.assign(s,fresh);} ))return;
+  skipOpeningForDev();
+ }
  function renderOpening(){
   const step=replayOpening?opening[replayIndex]:nextOpeningStep(opening,store.read());
   if(!step){onboarding=false;replayOpening=false;render();return;}
@@ -121,6 +131,7 @@ export function mountShell(root,{game,content,store}){
    stage.append(btn(step.type==="launch"?"Enter adventure":step.type==="access"?"Continue":"Continue",()=>{if(replayOpening){if(replayIndex<opening.length-1){replayIndex++;render();}else{replayOpening=false;render();}}else advanceOpening(step);},"primary-button"));
    if(!replayOpening&&canSkipOpeningStep(step))stage.append(btn("Skip this screen",()=>advanceOpening(step,true),"opening-skip"));
   }
+  if(!replayOpening)stage.append(btn("Skip opening (DEV)",skipOpeningForDev,"opening-skip"));
   if(replayOpening)stage.append(btn("Exit preview",()=>{replayOpening=false;render();},"opening-skip"));
   wrapper.append(stage);
  }
@@ -277,6 +288,7 @@ export function mountShell(root,{game,content,store}){
   const top=el("header","app-topbar");
   const identity=el("div","brand");identity.append(el("span","brand-mark","✦"),el("span","",game.name));top.append(identity);
   top.append(btn("Replay opening",()=>{stopScanner();replayIndex=0;replayOpening=true;render();},"dev-replay"));
+  top.append(btn("Reset test run",resetDevProgress,"dev-replay"));
   if(game.tutorial?.enabled)top.append(btn("Complete tutorial",()=>{const step=opening.find(s=>s.type==="tutorial-puzzle");if(!step)return;stopScanner();activePuzzle=(content.puzzles||[]).find(p=>p.id===step.puzzleId);if(!activePuzzle)return;tutorialStep=step;tutorialPreview=false;puzzleReplay=store.read().puzzles.completed.includes(activePuzzle.id);puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:puzzleReplay,tutorialShelfCharacterId:(content.storyChains||[])[0]?.archiveAssignment});puzzle=true;render();},"dev-replay"));
   wrapper.append(top);
   const body=el("main","app-content");body.id="main-content";renderContent(body);wrapper.append(body);
