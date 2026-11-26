@@ -144,6 +144,13 @@ export function mountShell(root,{game,content,store}){
   if(result.status==="ready"){try{store.discoverPuzzle(result.puzzle.id);}catch(e){scanMessage=e.message;render();return;}}
   activePuzzle=result.puzzle;puzzleReplay=false;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[]});puzzle=true;render();
  }
+
+ function ensureTutorialShelf(){
+  const id=activePuzzle?.id,first=(content.storyChains||[]).slice().sort((a,b)=>a.sequence-b.sequence)[0]?.archiveAssignment;
+  if(!tutorialStep||!id||!first||!store.read().puzzles.completed.includes(id))return;
+  if(store.read().characters.tiles.some(t=>t.puzzleId===id))return;
+  persist(s=>{if(!s.characters.tiles.some(t=>t.puzzleId===id)){s.characters.tiles.push({puzzleId:id,characterId:first});s.navigation.latestTileCharacterId=first;}});
+ }
  function replayTile(puzzleId){
   const target=(content.puzzles||[]).find(p=>p.id===puzzleId);
   if(!target){window.alert("This puzzle is no longer in the adventure packet.");return;}
@@ -253,7 +260,7 @@ export function mountShell(root,{game,content,store}){
     if(activePuzzle?.advancesStory&&!puzzleReplay)inner.append(el("p","muted","Check Archive → Journal for story updates."));
    }else if(activePuzzle?.mechanic==="compass-rotation"){
     for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
-    mountCompass(inner,{puzzle:activePuzzle,onSubmit:()=>{const result=puzzleController.submit();if(result.status==="completed")render();}});
+    mountCompass(inner,{puzzle:activePuzzle,onSubmit:()=>{const result=puzzleController.submit();if(result.status==="completed"){ensureTutorialShelf();render();}}});
    }else if(activePuzzle?.mechanic==="answer-entry"){
     for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
     const input=el("input","puzzle-answer");input.type="text";input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="Your answer";input.setAttribute("aria-label","Puzzle answer");
