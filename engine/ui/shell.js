@@ -41,7 +41,7 @@ export function mountShell(root,{game,content,store}){
  let screen=nav.some(t=>t.id===save.navigation.lastMeaningfulScreen)?save.navigation.lastMeaningfulScreen:nav[0].id;
  let tab=archive.some(t=>t.id===save.navigation.archiveTab)?save.navigation.archiveTab:archive[0]?.id;
  let selected=save.navigation.archiveItemId||null;
- let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, puzzleController=null, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
+ let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, puzzleController=null, puzzleReplay=false, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
  const scrolls={...(save.navigation.archiveScroll||{})};
  let screenScroll=0;
  const wrapper=el("div","app-shell");
@@ -136,7 +136,14 @@ export function mountShell(root,{game,content,store}){
   stopScanner();manual=false;scanMessage="";
   if(result.status==="locked"){scanMessage="This discovery is locked. Complete its prerequisites first.";render();return;}
   if(result.status==="ready"){try{store.discoverPuzzle(result.puzzle.id);}catch(e){scanMessage=e.message;render();return;}}
-  activePuzzle=result.puzzle;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[]});puzzle=true;render();
+  activePuzzle=result.puzzle;puzzleReplay=false;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[]});puzzle=true;render();
+ }
+ function replayTile(puzzleId){
+  const target=(content.puzzles||[]).find(p=>p.id===puzzleId);
+  if(!target){window.alert("This puzzle is no longer in the adventure packet.");return;}
+  stopScanner();activePuzzle=target;puzzleReplay=true;
+  puzzleController=createPuzzleController({puzzle:target,store,storyChains:content.storyChains||[],replay:true});
+  puzzle=true;render();
  }
  function renderScanner(body){
   const head=el("header","screen-header");head.append(el("h1","","Scan"));body.append(head);
@@ -176,8 +183,19 @@ export function mountShell(root,{game,content,store}){
   if(detail){
    pane.append(btn("← Back to "+t.label,()=>{detail=null;render();},"back-button"));
    pane.append(el("h2","",detail.title));
-   if(t.layout==="journal")for(const block of detail.contentBlocks||[])if(block.type==="text")pane.append(el("p","journal-entry",block.text));
-   else pane.append(el("p","muted","Content view placeholder · "+t.label));
+   if(t.layout==="characters"){
+    const assigned=store.read().characters.tiles.filter(tile=>tile.characterId===detail.id);
+    const shelf=el("section","character-shelf");shelf.append(el("h3","","Completed puzzles"));
+    if(!assigned.length)shelf.append(el("p","muted","No completed puzzle tiles on this shelf yet."));
+    for(const tile of assigned){const source=(content.puzzles||[]).find(p=>p.id===tile.puzzleId);
+     const card=btn("",()=>replayTile(tile.puzzleId),"puzzle-tile");
+     card.append(el("span","puzzle-tile-icon","✓"),el("span","puzzle-tile-title",source?.title||tile.puzzleId),el("span","puzzle-tile-action","Replay puzzle"));
+     shelf.append(card);
+    }
+    pane.append(shelf);
+   }else if(t.layout==="journal"){
+    for(const block of detail.contentBlocks||[])if(block.type==="text")pane.append(el("p","journal-entry",block.text));
+   }else pane.append(el("p","muted","Content view placeholder · "+t.label));
   }else if(t.layout==="characters"){
    const revealed=new Set(store.read().characters.revealed);
    const items=(content.characters||[]).filter(c=>revealed.has(c.id)).map(c=>({id:c.id,title:c.name||c.title||c.id}));
@@ -219,13 +237,14 @@ export function mountShell(root,{game,content,store}){
   if(puzzle){
    const full=el("main","puzzle-screen");
    const top=el("header","puzzle-header");
-   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;puzzleController=null;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
+   top.append(btn("✕ Exit",()=>{puzzle=false;activePuzzle=null;puzzleController=null;puzzleReplay=false;render();},"exit-button"),el("span","puzzle-label",activePuzzle?.title||"Puzzle"));
    full.append(top);
    const inner=el("section","puzzle-placeholder");
    inner.append(el("h1","",activePuzzle?.title||"Puzzle workspace"));
    if(puzzleController?.completed){
-    inner.append(el("p","puzzle-success","✓ Puzzle completed"),el("p","muted","This discovery is already recorded. Reopening it never awards progress twice."));
-    if(activePuzzle?.advancesStory)inner.append(el("p","muted","Check Archive → Journal for story updates."));
+    inner.append(el("p","puzzle-success",puzzleReplay?"✓ Replay solved":"✓ Puzzle completed"),el("p","muted",puzzleReplay?"Your original completion and shelf placement are unchanged.":"This discovery is already recorded. Reopening it never awards progress twice."));
+    if(!puzzleReplay&&store.read().puzzles.completed.includes(activePuzzle?.id))inner.append(btn("Replay puzzle",()=>{puzzleReplay=true;puzzleController=createPuzzleController({puzzle:activePuzzle,store,storyChains:content.storyChains||[],replay:true});render();},"primary-button"));
+    if(activePuzzle?.advancesStory&&!puzzleReplay)inner.append(el("p","muted","Check Archive → Journal for story updates."));
    }else if(activePuzzle?.mechanic==="answer-entry"){
     for(const instruction of activePuzzle.instructions||[])if(instruction.type==="text")inner.append(el("p","muted",instruction.text));
     const input=el("input","puzzle-answer");input.type="text";input.autocomplete="off";input.autocapitalize="characters";input.spellcheck=false;input.placeholder="Your answer";input.setAttribute("aria-label","Puzzle answer");
