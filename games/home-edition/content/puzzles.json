@@ -3,9 +3,16 @@
     "id": "home-scanner-test",
     "title": "Scanner Test Discovery",
     "entryMethod": "qr",
-    "mechanic": "placeholder",
+    "mechanic": "answer-entry",
     "discoveryCode": "H4DEV",
     "advancesStory": false,
-    "rewards": []
+    "rewards": [],
+    "instructions": [
+      {
+        "type": "text",
+        "text": "Engine test: enter COMPASS to solve this discovery."
+      }
+    ],
+    "solution": "COMPASS"
   }
 ]
