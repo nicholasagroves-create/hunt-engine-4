@@ -39,7 +39,13 @@
     "openingScreens": "content/openingScreens.json"
   },
   "openingSequence": {
-    "screenIds": [],
+    "screenIds": [
+      "dev-access",
+      "dev-studio",
+      "dev-sponsor",
+      "dev-title",
+      "dev-narrative"
+    ],
     "allowNarrativeReplay": true
   },
   "launch": {

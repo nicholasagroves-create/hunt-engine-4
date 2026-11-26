@@ -1,3 +1,4 @@
+import {openingSteps,nextOpeningStep,canSkipOpeningStep} from "../core/onboarding.js";
 import {resolveDiscovery,parseDiscoveryInput} from "../core/discovery.js";
 import {openCameraScanner} from "./scanner.js";
 // Task 7: configurable application shell. Mechanics and scanner arrive in Phase 2.
@@ -34,10 +35,11 @@ export function mountShell(root,{game,content,store}){
  if(!nav.length)throw Error("Adventure needs at least one navigation destination");
  const transition=game.shell?.transition||"fade";
  const save=store.read();
+ const opening=openingSteps(game,content);
  let screen=nav.some(t=>t.id===save.navigation.lastMeaningfulScreen)?save.navigation.lastMeaningfulScreen:nav[0].id;
  let tab=archive.some(t=>t.id===save.navigation.archiveTab)?save.navigation.archiveTab:archive[0]?.id;
  let selected=save.navigation.archiveItemId||null;
- let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, scannerSession=null, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
+ let detail=null, puzzle=false, scanning=false, manual=false, scanMessage="", activePuzzle=null, scannerSession=null, replayOpening=false, onboarding=!save.onboarding.completed&&game.onboarding?.enabled!==false;
  const scrolls={...(save.navigation.archiveScroll||{})};
  let screenScroll=0;
  const wrapper=el("div","app-shell");
@@ -63,11 +65,59 @@ export function mountShell(root,{game,content,store}){
  function openItem(item){
   selected=item.id;detail=item;remember();render();
  }
- function startOnboarding(){
-  if(!persist(s=>{s.onboarding.completed=true;if(game.tutorial?.enabled!==true)s.onboarding.tutorialCompleted=true;}))return;
-  onboarding=false;remember();render();
+ function advanceOpening(step,skipped=false){
+  if(step.type==="tutorial-puzzle")return;
+  if(step.type==="access"){
+   const input=wrapper.querySelector("#player-access-name");
+   const name=input?.value.trim();
+   if(!name){input?.focus();return;}
+   if(!persist(s=>{s.player.name=name.slice(0,100);s.player.access="active";if(!replayOpening)s.onboarding.completedScreens.push(step.id);} ))return;
+  }else if(!replayOpening){
+   if(!persist(s=>{const key=skipped?"skippedScreens":"completedScreens";s.onboarding[key].push(step.id);
+    if(step.type==="launch"){s.onboarding.completed=true;s.onboarding.tutorialCompleted=game.tutorial?.enabled!==true;}
+   }))return;
+  }
+  if(step.type==="launch"){
+   replayOpening=false;onboarding=false;
+   const pending=store.read().onboarding.pendingInitialQr;
+   if(pending&&!store.read().onboarding.rescanPromptShown){
+    persist(s=>{s.onboarding.rescanPromptShown=true;s.onboarding.pendingInitialQr=null;});
+    screen="scan";remember();render();
+    scanMessage="Opening complete. Scan the discovery code again to begin the puzzle.";render();return;
+   }
+   remember();render();return;
+  }
+  render();
  }
-async function startScanner(){
+ function renderOpening(){
+  const step=replayOpening?opening[replayIndex]:nextOpeningStep(opening,store.read());
+  if(!step){onboarding=false;replayOpening=false;render();return;}
+  const stage=el("main","opening-stage opening-"+step.type);
+  stage.append(el("p","eyebrow","HUNT ENGINE 4.0 · OPENING TEST"));
+  const count=replayOpening?replayIndex+1:Math.max(1,opening.findIndex(s=>s.id===step.id)+1);
+  stage.append(el("p","opening-progress","Stage "+count+" of "+opening.length));
+  const headings={access:"Player access",studio:"Studio introduction",sponsor:"Sponsor presentation",title:"Adventure title",narrative:"Narrative introduction",instruction:"Instructions",launch:"Adventure launch","tutorial-puzzle":"Interactive tutorial"};
+  stage.append(el("h1","",step.presentation?.heading||headings[step.type]||step.id));
+  for(const block of step.contentBlocks||[]){
+   if(block.type==="text")stage.append(el("p","opening-copy",block.text));
+   else if(block.type==="image"){const img=el("img","opening-media");img.src=block.src;img.alt=block.alt||"";stage.append(img);}
+   else if(block.type==="audio"||block.type==="video"){const media=el(block.type,"opening-media");media.controls=true;media.src=block.src;stage.append(media);if(block.transcript)stage.append(el("p","muted",block.transcript));}
+   else if(block.type==="document")stage.append(el("p","muted",block.caption||"Document available in the adventure."));
+  }
+  if(step.type==="access"&&!replayOpening){
+   const input=el("input","opening-name");input.id="player-access-name";input.type="text";input.maxLength=100;input.autocomplete="name";input.placeholder="Your name";input.value=store.read().player.name||"";input.setAttribute("aria-label","Player name");stage.append(input);
+  }
+  if(step.type==="tutorial-puzzle"){
+   stage.append(el("p","muted","This is a required tutorial puzzle. It will be playable when the puzzle controller is implemented. It cannot be skipped or marked complete here."));
+  }else{
+   stage.append(btn(step.type==="launch"?"Enter adventure":step.type==="access"?"Continue":"Continue",()=>{if(replayOpening){if(replayIndex<opening.length-1){replayIndex++;render();}else{replayOpening=false;render();}}else advanceOpening(step);},"primary-button"));
+   if(!replayOpening&&canSkipOpeningStep(step))stage.append(btn("Skip this screen",()=>advanceOpening(step,true),"opening-skip"));
+  }
+  if(replayOpening)stage.append(btn("Exit preview",()=>{replayOpening=false;render();},"opening-skip"));
+  wrapper.append(stage);
+ }
+ let replayIndex=0;
+ async function startScanner(){
   if(onboarding||puzzle||screen!=="scan")return;
   stopScanner();manual=false;scanMessage="";scanning=true;render();
   const video=wrapper.querySelector("#scanner-video");
@@ -159,16 +209,7 @@ async function startScanner(){
  function render(){
   wrapper.replaceChildren();
   wrapper.className="app-shell transition-"+(transition==="none"?"none":"fade");
-  if(onboarding){
-   const intro=el("main","welcome");
-   const icon=el("img","welcome-icon");icon.src="./icon-192.png";icon.alt="Hunt compass";
-   intro.append(icon,el("p","eyebrow","HUNT ENGINE 4.0 · DEV"),el("h1","",game.name),el("p","muted","Your adventure starts here."));
-   if(game.tutorial?.enabled===true){
-    intro.append(el("p","muted","This adventure requires a tutorial before regular navigation. Tutorial playback will be connected in Phase 2."));
-    intro.append(el("p","fine-print","Navigation remains locked until the tutorial is implemented."));
-   }else intro.append(btn("Start adventure",startOnboarding,"primary-button"));
-   wrapper.append(intro);return;
-  }
+  if(onboarding||replayOpening){renderOpening();return;}
   if(puzzle){
    const full=el("main","puzzle-screen");
    const top=el("header","puzzle-header");
@@ -179,7 +220,7 @@ async function startScanner(){
   }
   const top=el("header","app-topbar");
   const identity=el("div","brand");identity.append(el("span","brand-mark","✦"),el("span","",game.name));top.append(identity);
-  top.append(el("span","dev-label","DEV"));
+  top.append(btn("Replay opening",()=>{stopScanner();replayIndex=0;replayOpening=true;render();},"dev-replay"));
   wrapper.append(top);
   const body=el("main","app-content");body.id="main-content";renderContent(body);wrapper.append(body);
   const bottom=el("nav","bottom-nav");bottom.setAttribute("aria-label","Main navigation");
@@ -194,6 +235,6 @@ async function startScanner(){
  if(!onboarding&&screen==="scan")requestAnimationFrame(startScanner);
  const params=new URL(location.href).searchParams;
  const incoming=params.get("code");
- if(incoming){history.replaceState(null,"",location.pathname+location.hash);if(!onboarding){screen="scan";remember();render();handleDiscovery(incoming);}else{persist(s=>{s.onboarding.pendingInitialQr=incoming;});}}
+ if(incoming){history.replaceState(null,"",location.pathname+location.hash);if(!onboarding){screen="scan";remember();render();handleDiscovery(incoming);}else{const parsed=parseDiscoveryInput(incoming,game.id,location.href);if(parsed.ok)persist(s=>{s.onboarding.pendingInitialQr=parsed.code;});}}
  window.addEventListener("pagehide",stopScanner);
 }
