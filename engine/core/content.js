@@ -22,7 +22,7 @@ function referenceChecks(game,content) {
     for(const id of s.characterCompletion||[])check("characters",id,where+".characterCompletion");
     rewards(s.rewards,where+".rewards");
   }
-  for(const [i,t] of content.transmissions.entries())check("puzzles",t.targetPuzzleId,"transmissions["+i+"].targetPuzzleId");
+  for(const [i,t] of content.transmissions.entries())if(t.targetPuzzleId)check("puzzles",t.targetPuzzleId,"transmissions["+i+"].targetPuzzleId");
   for(const [i,a] of content.achievements.entries())rewards(a.rewards,"achievements["+i+"].rewards");
   for(const [i,s] of content.openingScreens.entries()){
     const where="openingScreens["+i+"]";
