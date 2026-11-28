@@ -4,7 +4,6 @@
   "type": "object",
   "required": [
     "id",
-    "targetPuzzleId",
     "contentBlocks"
   ],
   "properties": {
@@ -89,6 +88,9 @@
     },
     "presentation": {
       "type": "object"
+    },
+    "persistent": {
+      "type": "boolean"
     }
   },
   "additionalProperties": false
